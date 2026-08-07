@@ -24,4 +24,16 @@ public class TaskController {
         taskRepository.save(task);
         return task;
     }
+
+    @DeleteMapping("/{id}")
+    public void deleteTask(@PathVariable Long id) {
+        taskRepository.deleteById(id);
+    }
+
+    @PutMapping("/{id}")
+    public Task updateTask(@PathVariable Long id, @RequestBody Task task) {
+        task.setId(id);
+        taskRepository.update(task);
+        return task;
+    }
 }

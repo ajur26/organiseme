@@ -44,4 +44,29 @@ public class TaskRepository {
                 task.isCompleted()
         );
     }
+
+    public void deleteById(Long id){
+        String sql = """
+                DELETE FROM tasks
+                WHERE id = ?
+                """;
+
+        jdbcTemplate.update(sql, id);
+    }
+
+    public void update(Task task) {
+        String sql = """
+                UPDATE tasks
+                SET title = ?, description = ?, completed = ?
+                WHERE id = ?
+                """;
+
+        jdbcTemplate.update(
+            sql,
+            task.getTitle(),
+            task.getDescription(),
+            task.isCompleted(),
+            task.getId()
+        );
+    }
 }
