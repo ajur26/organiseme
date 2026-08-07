@@ -7,18 +7,20 @@ import java.util.List;
 
 @Repository
 public class TaskRepository {
+
     private final JdbcTemplate jdbcTemplate;
 
     public TaskRepository(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
-    
+
     public List<Task> findAll() {
         String sql = """
                 SELECT id, title, description, completed
                 FROM tasks
                 ORDER BY id
                 """;
+
         return jdbcTemplate.query(sql, (resultSet, rowNum) ->
                 new Task(
                         resultSet.getLong("id"),
@@ -26,6 +28,20 @@ public class TaskRepository {
                         resultSet.getString("description"),
                         resultSet.getBoolean("completed")
                 )
-            );    
+        );
+    }
+
+    public void save(Task task) {
+        String sql = """
+                INSERT INTO tasks (title, description, completed)
+                VALUES (?, ?, ?)
+                """;
+
+        jdbcTemplate.update(
+                sql,
+                task.getTitle(),
+                task.getDescription(),
+                task.isCompleted()
+        );
     }
 }

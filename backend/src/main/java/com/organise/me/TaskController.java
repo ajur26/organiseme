@@ -2,14 +2,12 @@ package com.organise.me;
 
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/tasks")
-
 public class TaskController {
-    
+
     private final TaskRepository taskRepository;
 
     public TaskController(TaskRepository taskRepository) {
@@ -19,5 +17,11 @@ public class TaskController {
     @GetMapping
     public List<Task> getTasks() {
         return taskRepository.findAll();
+    }
+
+    @PostMapping
+    public Task addTask(@RequestBody Task task) {
+        taskRepository.save(task);
+        return task;
     }
 }
