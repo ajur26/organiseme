@@ -1,0 +1,31 @@
+package com.organise.me;
+
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public class TaskRepository {
+    private final JdbcTemplate jdbcTemplate;
+
+    public TaskRepository(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
+    }
+    
+    public List<Task> findAll() {
+        String sql = """
+                SELECT id, title, description, completed
+                FROM tasks
+                ORDER BY id
+                """;
+        return jdbcTemplate.query(sql, (resultSet, rowNum) ->
+                new Task(
+                        resultSet.getLong("id"),
+                        resultSet.getString("title"),
+                        resultSet.getString("description"),
+                        resultSet.getBoolean("completed")
+                )
+            );    
+    }
+}
