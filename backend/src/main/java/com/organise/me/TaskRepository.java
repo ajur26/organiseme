@@ -31,14 +31,16 @@ public class TaskRepository {
         );
     }
 
-    public void save(Task task) {
+    public Long save(Task task) {
         String sql = """
                 INSERT INTO tasks (title, description, completed)
                 VALUES (?, ?, ?)
+                RETURNING id
                 """;
 
-        jdbcTemplate.update(
+        return jdbcTemplate.queryForObject(
                 sql,
+                Long.class,
                 task.getTitle(),
                 task.getDescription(),
                 task.isCompleted()

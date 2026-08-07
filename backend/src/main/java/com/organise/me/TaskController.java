@@ -21,7 +21,8 @@ public class TaskController {
 
     @PostMapping
     public Task addTask(@RequestBody Task task) {
-        taskRepository.save(task);
+        Long id = taskRepository.save(task);
+        task.setId(id);
         return task;
     }
 
