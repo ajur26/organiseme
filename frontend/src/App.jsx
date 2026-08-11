@@ -11,6 +11,27 @@ function App() {
     .catch(error => console.error('Error retrieving tasks:', error))
   }, [])
 
+  function toggleTask(task) {
+    fetch(`http://localhost:8080/api/tasks/${task.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title: task.title,
+        description : task.description,
+        completed: !task.completed,
+      }),
+    })
+    .then(response => response.json())
+    .then(updatedTask => {
+      setTasks(tasks.map(task => 
+        task.id === updatedTask.id ? updatedTask : task
+      ))
+    })
+    .catch(error => console.error('Error updating task:', error))
+  }
+
   return (
     <main>
       <h1>OrganiseMe</h1>
@@ -24,7 +45,7 @@ function App() {
               <input
               type="checkbox"
               checked={task.completed}
-              readOnly
+              onChange={() => toggleTask(task)}
               />
             <span>{task.title}</span>
             </li>
