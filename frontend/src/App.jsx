@@ -9,6 +9,7 @@ function App() {
   const [editTitle, setEditTitle] = useState('')
   const [editDescription, setEditDescription] = useState('')
   const [filter, setFilter] = useState('active')
+  const [expandedId, setExpandedId] = useState(null)
 
   useEffect(() => {
     fetch('http://localhost:8080/api/tasks')
@@ -65,8 +66,16 @@ function App() {
     fetch(`http://localhost:8080/api/tasks/${id}`, {
       method: 'DELETE',
     })
-      .then(() => {
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`HTTP error: ${response.status}`)
+        }
+
         setTasks(tasks.filter(task => task.id !== id))
+
+        if (expandedId === id) {
+          setExpandedId(null)
+        }
       })
       .catch(error => console.error('Error deleting task:', error))
   }
@@ -114,14 +123,16 @@ function App() {
     return true
   })
 
+  const activeTasksCount = tasks.filter(task => !task.completed).length
+
   return (
-    <main>
+    <main className="app">
       <h1>OrganiseMe</h1>
 
       <section>
         <h2>Zadania</h2>
 
-        <form onSubmit={addTask}>
+        <form className="task-form" onSubmit={addTask}>
           <input
             type="text"
             placeholder="Tytuł zadania"
@@ -141,65 +152,98 @@ function App() {
           </button>
         </form>
 
-        <div>
-          <button onClick={() => setFilter('all')}>
-            Wszystkie
+        <div className="filters">
+          <button
+            className={filter === 'active' ? 'active-filter' : ''}
+            onClick={() => setFilter('active')}
+          >
+            Aktywne ({activeTasksCount})
           </button>
 
-          <button onClick={() => setFilter('active')}>
-            Aktywne
-          </button>
-
-          <button onClick={() => setFilter('completed')}>
+          <button
+            className={filter === 'completed' ? 'active-filter' : ''}
+            onClick={() => setFilter('completed')}
+          >
             Ukończone
+          </button>
+
+          <button
+            className={filter === 'all' ? 'active-filter' : ''}
+            onClick={() => setFilter('all')}
+          >
+            Wszystkie
           </button>
         </div>
 
-        <ul>
+        {filteredTasks.length === 0 && (
+          <p className="empty-message">
+            Brak zadań do wyświetlenia.
+          </p>
+        )}
+
+        <ul className="task-list">
           {filteredTasks.map(task => (
-            <li key={task.id}>
+            <li className="task-item" key={task.id}>
               <input
                 type="checkbox"
                 checked={task.completed}
                 onChange={() => toggleTask(task)}
               />
 
-              {editingId === task.id ? (
-                <div>
-                  <input
-                    type="text"
-                    value={editTitle}
-                    onChange={event => setEditTitle(event.target.value)}
-                  />
+              <div className="task-wrapper">
+                {editingId === task.id ? (
+                  <div className="task-edit">
+                    <input
+                      type="text"
+                      value={editTitle}
+                      onChange={event => setEditTitle(event.target.value)}
+                    />
 
-                  <input
-                    type="text"
-                    value={editDescription}
-                    onChange={event => setEditDescription(event.target.value)}
-                  />
+                    <input
+                      type="text"
+                      value={editDescription}
+                      onChange={event => setEditDescription(event.target.value)}
+                    />
 
-                  <button onClick={() => saveTask(task)}>
-                    Zapisz
-                  </button>
+                    <button onClick={() => saveTask(task)}>
+                      Zapisz
+                    </button>
 
-                  <button onClick={() => setEditingId(null)}>
-                    Anuluj
-                  </button>
-                </div>
-              ) : (
-                <div>
-                  <strong>{task.title}</strong>
-                  <p>{task.description}</p>
+                    <button onClick={() => setEditingId(null)}>
+                      Anuluj
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div
+                      className={`task-header ${
+                        task.completed ? 'completed' : ''
+                      }`}
+                      onClick={() =>
+                        setExpandedId(
+                          expandedId === task.id ? null : task.id
+                        )
+                      }
+                    >
+                      <strong>{task.title}</strong>
+                    </div>
 
-                  <button onClick={() => startEditing(task)}>
-                    Edytuj
-                  </button>
-                </div>
-              )}
+                    {expandedId === task.id && (
+                      <div className="task-details">
+                        <p>{task.description}</p>
 
-              <button onClick={() => deleteTask(task.id)}>
-                Usuń
-              </button>
+                        <button onClick={() => startEditing(task)}>
+                          Edytuj
+                        </button>
+
+                        <button onClick={() => deleteTask(task.id)}>
+                          Usuń
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
             </li>
           ))}
         </ul>
