@@ -5,7 +5,10 @@ function App() {
   const [tasks, setTasks] = useState([])
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
-
+  const [editingId, setEditingId] = useState(null)
+  const [editTitle, setEditTitle]  = useState('')
+  const [editDescription, setEditDescription] = useState('')
+  
   useEffect(() => {
     fetch('http://localhost:8080/api/tasks')
       .then(response => response.json())
@@ -67,6 +70,35 @@ function App() {
       .catch(error => console.error('Error deleting task:', error))
   }
 
+  function startEditing(task) {
+    setEditingId(task.id)
+    setEditiTitle(task.title)
+    setEditDescription(task.description)
+  }
+
+  function saveTask(task) {
+    fetich(`http://localhost:8080/api/tasks/${task.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        title:editTitle,
+        description: editDescription,
+        completed: task.completed,
+      })
+    })
+      .then(response => response.json())
+      .then(updatedTask => {
+        setTasks(tasks.map(task => task.id === updatedTask.id ? updatedTask : task))
+
+        setEditingId((null))
+        setEditTitle('')
+        setEditDescription('')
+      })
+      .catch(error => console.error('Error updating task:', error))
+  }
+
   return (
     <main>
       <h1>OrganiseMe</h1>
@@ -101,13 +133,43 @@ function App() {
                 onChange={() => toggleTask(task)}
               />
 
-              <div>
-                <strong>{task.title}</strong>
-                <p>{task.description}</p>
-              </div>
+              {editingId === task.id ? (
+                <div>
+                  <input
+                    type="text"
+                    value={editTitle}
+                    onChange={event => setEditTitle(event.target.value)}
+                    />
+
+                    <input
+                    type="text"
+                    value={editDescription}
+                    onChange={event => setEditDescription(event.target.value)}
+                    />
+
+                    <button onClick={() => saveTask(task)}>
+                      Zapisz
+                      </button>
+
+                      <button onClick={() => setEditingId(null)}>
+                        Anuluj
+                      </button>
+                </div>
+              ) : (
+                <div>
+                  <strong>{task.title}</strong>
+                  <p>{task.description}</p>
+
+                  <button onClick={() => startEditing(task)}>
+                    Edytuj
+                  </button>
+                </div>
+              )}
 
               <button onClick={() => deleteTask(task.id)}>Usuń</button>
             </li>
+
+
           ))}
         </ul>
 
