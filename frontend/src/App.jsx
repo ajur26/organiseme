@@ -10,6 +10,7 @@ function App() {
   const [editDescription, setEditDescription] = useState('')
   const [filter, setFilter] = useState('active')
   const [expandedId, setExpandedId] = useState(null)
+  const [error, setError] = useState('')
 
   useEffect(() => {
     fetch('http://localhost:8080/api/tasks')
@@ -39,27 +40,34 @@ function App() {
       .catch(error => console.error('Error updating task:', error))
   }
 
-  function addTask(event) {
-    event.preventDefault()
+function addTask(event) {
+  event.preventDefault()
 
-    fetch('http://localhost:8080/api/tasks', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        title: title,
-        description: description,
-        completed: false,
-      }),
+  if (title.trim() === '') {
+    setError('Tytuł zadania jest wymagany.')
+    return
+  }
+
+  setError('')
+
+  fetch('http://localhost:8080/api/tasks', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      title: title.trim(),
+      description: description.trim(),
+      completed: false,
+    }),
+  })
+    .then(response => response.json())
+    .then(newTask => {
+      setTasks([...tasks, newTask])
+      setTitle('')
+      setDescription('')
     })
-      .then(response => response.json())
-      .then(newTask => {
-        setTasks([...tasks, newTask])
-        setTitle('')
-        setDescription('')
-      })
-      .catch(error => console.error('Error adding task:', error))
+    .catch(error => console.error('Error adding task:', error))
   }
 
   function deleteTask(id) {
@@ -150,7 +158,13 @@ function App() {
           <button type="submit">
             Dodaj
           </button>
+
         </form>
+        {error && (
+          <p className="form-error">
+            {error}
+          </p>
+        )}
 
         <div className="filters">
           <button

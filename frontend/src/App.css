@@ -222,4 +222,10 @@ button:hover {
   .task-edit {
     flex-direction: column;
   }
+
+  .form-error {
+  margin: -10px 0 20px;
+  color: #8a5f55;
+  font-size: 0.9rem;
+}
 }
