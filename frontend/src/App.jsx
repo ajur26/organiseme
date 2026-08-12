@@ -57,6 +57,16 @@ function App() {
       .catch(error => console.error('Error adding task:', error))
   }
 
+  function deleteTask(id) {
+    fetch(`http://localhost:8080/api/tasks/${id}`, {
+      method: 'DELETE',    
+    })
+      .then(() => {
+        setTasks(tasks.filter(task => task.id !== id))
+      })
+      .catch(error => console.error('Error deleting task:', error))
+  }
+
   return (
     <main>
       <h1>OrganiseMe</h1>
@@ -95,9 +105,13 @@ function App() {
                 <strong>{task.title}</strong>
                 <p>{task.description}</p>
               </div>
+
+              <button onClick={() => deleteTask(task.id)}>Usuń</button>
             </li>
           ))}
         </ul>
+
+        
       </section>
     </main>
   )
