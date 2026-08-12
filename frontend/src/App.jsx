@@ -6,9 +6,10 @@ function App() {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [editingId, setEditingId] = useState(null)
-  const [editTitle, setEditTitle]  = useState('')
+  const [editTitle, setEditTitle] = useState('')
   const [editDescription, setEditDescription] = useState('')
-  
+  const [filter, setFilter] = useState('active')
+
   useEffect(() => {
     fetch('http://localhost:8080/api/tasks')
       .then(response => response.json())
@@ -62,7 +63,7 @@ function App() {
 
   function deleteTask(id) {
     fetch(`http://localhost:8080/api/tasks/${id}`, {
-      method: 'DELETE',    
+      method: 'DELETE',
     })
       .then(() => {
         setTasks(tasks.filter(task => task.id !== id))
@@ -72,32 +73,46 @@ function App() {
 
   function startEditing(task) {
     setEditingId(task.id)
-    setEditiTitle(task.title)
+    setEditTitle(task.title)
     setEditDescription(task.description)
   }
 
   function saveTask(task) {
-    fetich(`http://localhost:8080/api/tasks/${task.id}`, {
+    fetch(`http://localhost:8080/api/tasks/${task.id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        title:editTitle,
+        title: editTitle,
         description: editDescription,
         completed: task.completed,
-      })
+      }),
     })
       .then(response => response.json())
       .then(updatedTask => {
-        setTasks(tasks.map(task => task.id === updatedTask.id ? updatedTask : task))
+        setTasks(tasks.map(task =>
+          task.id === updatedTask.id ? updatedTask : task
+        ))
 
-        setEditingId((null))
+        setEditingId(null)
         setEditTitle('')
         setEditDescription('')
       })
       .catch(error => console.error('Error updating task:', error))
   }
+
+  const filteredTasks = tasks.filter(task => {
+    if (filter === 'active') {
+      return !task.completed
+    }
+
+    if (filter === 'completed') {
+      return task.completed
+    }
+
+    return true
+  })
 
   return (
     <main>
@@ -121,11 +136,27 @@ function App() {
             onChange={event => setDescription(event.target.value)}
           />
 
-          <button type="submit">Dodaj</button>
+          <button type="submit">
+            Dodaj
+          </button>
         </form>
 
+        <div>
+          <button onClick={() => setFilter('all')}>
+            Wszystkie
+          </button>
+
+          <button onClick={() => setFilter('active')}>
+            Aktywne
+          </button>
+
+          <button onClick={() => setFilter('completed')}>
+            Ukończone
+          </button>
+        </div>
+
         <ul>
-          {tasks.map(task => (
+          {filteredTasks.map(task => (
             <li key={task.id}>
               <input
                 type="checkbox"
@@ -139,21 +170,21 @@ function App() {
                     type="text"
                     value={editTitle}
                     onChange={event => setEditTitle(event.target.value)}
-                    />
+                  />
 
-                    <input
+                  <input
                     type="text"
                     value={editDescription}
                     onChange={event => setEditDescription(event.target.value)}
-                    />
+                  />
 
-                    <button onClick={() => saveTask(task)}>
-                      Zapisz
-                      </button>
+                  <button onClick={() => saveTask(task)}>
+                    Zapisz
+                  </button>
 
-                      <button onClick={() => setEditingId(null)}>
-                        Anuluj
-                      </button>
+                  <button onClick={() => setEditingId(null)}>
+                    Anuluj
+                  </button>
                 </div>
               ) : (
                 <div>
@@ -166,14 +197,12 @@ function App() {
                 </div>
               )}
 
-              <button onClick={() => deleteTask(task.id)}>Usuń</button>
+              <button onClick={() => deleteTask(task.id)}>
+                Usuń
+              </button>
             </li>
-
-
           ))}
         </ul>
-
-        
       </section>
     </main>
   )
